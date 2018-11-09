@@ -1,5 +1,8 @@
 import sys
-from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QFileDialog, QProgressBar, QTextEdit, QLabel, QMessageBox
+from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QFileDialog, QProgressBar,\
+    QTextEdit, QLabel, QMessageBox, QDateEdit
+
+from PyQt5.QtCore import QDate
 
 import xml.etree.ElementTree as ET
 import re
@@ -88,6 +91,8 @@ class Example(QWidget):
         self.num_files = QTextEdit()
         self.num_tests = QTextEdit()
         self.num_fails = QTextEdit()
+        self.start_date = QDateEdit()
+        self.end_date = QDateEdit(QDate.currentDate())
         self.folder_path = None
         self.initUI()
 
@@ -101,6 +106,8 @@ class Example(QWidget):
         vbox = QVBoxLayout()
         vbox.addWidget(file_select_button)
         vbox.addWidget(run_button)
+        vbox.addWidget(self.start_date)
+        vbox.addWidget(self.end_date)
         vbox.addStretch(1)
 
         label_box = QVBoxLayout()
