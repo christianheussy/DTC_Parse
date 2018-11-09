@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QFileDialog, QProgressBar, QTextEdit, QLabel
+from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QFileDialog, QProgressBar, QTextEdit, QLabel, QMessageBox
 
 import xml.etree.ElementTree as ET
 import re
@@ -85,9 +85,9 @@ class Example(QWidget):
         super().__init__()
 
         self.pbar = QProgressBar(self)
-        self.num_files = QLabel()
-        self.num_tests = QLabel()
-        self.num_fails = QLabel()
+        self.num_files = QTextEdit()
+        self.num_tests = QTextEdit()
+        self.num_fails = QTextEdit()
         self.folder_path = None
         self.initUI()
 
@@ -96,10 +96,17 @@ class Example(QWidget):
         run_button = QPushButton("Parse Files")
         file_select_button = QPushButton("Select Directory")
 
+        output_labels = ['Files Parsed:', 'Tests Found:', 'Fails Found']
+
         vbox = QVBoxLayout()
         vbox.addWidget(file_select_button)
         vbox.addWidget(run_button)
         vbox.addStretch(1)
+
+        label_box = QVBoxLayout()
+
+        for label_name in output_labels:
+            label_box.addWidget(QLabel(label_name))
 
         res_box = QVBoxLayout()
         res_box.addWidget(self.num_files)
@@ -108,6 +115,7 @@ class Example(QWidget):
 
         top_box = QHBoxLayout()
         top_box.addLayout(vbox)
+        top_box.addLayout(label_box)
         top_box.addLayout(res_box)
 
         bottom_box = QHBoxLayout()
@@ -133,10 +141,17 @@ class Example(QWidget):
         self.folder_path = folder_path
 
     def parse_files(self):
-        num_files, tests, faults = main(start='20181001', directory=self.folder_path, progress_bar=self.pbar)
-        self.num_files.setText(num_files)
-        self.num_tests.setText(tests)
-        self.num_fails.setText(faults)
+
+        if self.folder_path:
+            num_files, tests, faults = main(start='20181001', directory=self.folder_path, progress_bar=self.pbar)
+            self.num_files.setText(num_files)
+            self.num_tests.setText(tests)
+            self.num_fails.setText(faults)
+        else:
+            self.pop_error('No directory specified')
+
+    def pop_error(self, message):
+        QMessageBox.about(self, "Error", message)
 
 
 if __name__ == '__main__':
