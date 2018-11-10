@@ -1,85 +1,8 @@
 import sys
 from PyQt5.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QApplication, QFileDialog, QProgressBar,\
     QTextEdit, QLabel, QMessageBox, QDateEdit
-
 from PyQt5.QtCore import QDate
-
-import xml.etree.ElementTree as ET
-import re
-import dateutil.parser
-import os
-import datetime
-
-
-def test_file(file):
-    # open xml
-    tree = ET.parse(file)
-    root = tree.getroot()
-
-    # find all TEST elements with the correct description
-    target_test = root.findall(".//*TEST[@Description='Clear the Diagnostic Trouble Codes (MSM)']")
-
-    if target_test:
-        contains_test = True
-    else:
-        return False, False
-
-    # parse for DTC
-    dtc_dict = {}
-
-    for attribute in target_test[0][0]:
-        test_string = attribute.get('Val')
-        if test_string:
-            matches = re.findall('\d{6}-\d*', test_string)
-            if matches:
-                assert len(matches) == 1
-                spn, fmi = matches[0].split('-')
-                dtc_dict.setdefault(spn, [])
-                dtc_dict[spn].append(fmi)
-
-    check_list = ['12', '14', '31']
-    contains_fault = False
-
-    for fmi_list in dtc_dict.values():
-        if all(elem in fmi_list for elem in check_list):
-            contains_fault = True
-
-    return contains_test, contains_fault
-
-
-def main(start, end=datetime.date.today(), directory=os.getcwd(), progress_bar=None):
-    start_date = dateutil.parser.parse(start).date()
-
-    if type(end) == str:
-        end_date = dateutil.parser.parse(end).date()
-    elif type(end) == datetime.date:
-        end_date = end
-    else:
-        raise TypeError('End Date is not a valid format')
-
-    files_to_test = []
-    for filename in os.listdir(directory):
-        if '.xml' in filename:
-            front, date, end = filename.split('_')
-            file_date = dateutil.parser.parse(date).date()
-            if start_date <= file_date <= end_date:
-                files_to_test.append(filename)
-
-    counter = 0
-    tests_run, faults = 0, 0
-    for file in files_to_test:
-        contains_test, contains_fault = test_file(os.path.join(directory, file))
-        if contains_test:
-            tests_run += 1
-        if contains_fault:
-            faults += 1
-        counter += 1
-
-        if progress_bar:
-            progress_bar.setValue((counter / len(files_to_test)) * 100)
-
-    number_tested = len(files_to_test)
-    return str(len(files_to_test)), str(tests_run), str(faults)
+from utils import parser
 
 
 class Example(QWidget):
@@ -91,17 +14,20 @@ class Example(QWidget):
         self.num_files = QTextEdit()
         self.num_tests = QTextEdit()
         self.num_fails = QTextEdit()
+        self.num_chassis = QTextEdit()
+        self.num_chassis_failed = QTextEdit()
         self.start_date = QDateEdit()
         self.end_date = QDateEdit(QDate.currentDate())
         self.folder_path = None
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
 
         run_button = QPushButton("Parse Files")
         file_select_button = QPushButton("Select Directory")
 
-        output_labels = ['Files Parsed:', 'Tests Found:', 'Fails Found']
+        output_labels = ['Files Parsed:', 'Total Tests:', 'Total Tests Failed:', 'Unique Chassis Tested:',
+                         'Unique Chassis Failed:']
 
         vbox = QVBoxLayout()
         vbox.addWidget(file_select_button)
@@ -119,6 +45,8 @@ class Example(QWidget):
         res_box.addWidget(self.num_files)
         res_box.addWidget(self.num_tests)
         res_box.addWidget(self.num_fails)
+        res_box.addWidget(self.num_chassis)
+        res_box.addWidget(self.num_chassis_failed)
 
         top_box = QHBoxLayout()
         top_box.addLayout(vbox)
@@ -150,10 +78,13 @@ class Example(QWidget):
     def parse_files(self):
 
         if self.folder_path:
-            num_files, tests, faults = main(start='20181001', directory=self.folder_path, progress_bar=self.pbar)
-            self.num_files.setText(num_files)
-            self.num_tests.setText(tests)
-            self.num_fails.setText(faults)
+            parse = parser.Parser(self.folder_path, self.pbar)
+            num_files, tests, faults, num_chassis, num_chassis_fail = parse.parse_directory('20181001')
+            self.num_files.setText(str(num_files))
+            self.num_tests.setText(str(tests))
+            self.num_fails.setText(str(faults))
+            self.num_chassis.setText(str(num_chassis))
+            self.num_chassis_failed.setText(str(num_chassis_fail))
         else:
             self.pop_error('No directory specified')
 
