@@ -49,15 +49,15 @@ class Parser:
 
         return criteria_met, contains_fault, chassis_number
 
-    def parse_directory(self, start, end=datetime.date.today()):
-        start_date = dateutil.parser.parse(start).date()
+    def parse_directory(self, start_date, end_date):
 
-        if type(end) == str:
-            end_date = dateutil.parser.parse(end).date()
-        elif type(end) == datetime.date:
-            end_date = end
-        else:
-            raise TypeError('End Date is not a valid format')
+
+        # if type(end) == str:
+        #     end_date = dateutil.parser.parse(end).date()
+        # elif type(end) == datetime.date:
+        #     end_date = end
+        # else:
+        #     raise TypeError('End Date is not a valid format')
 
         files_to_test = []
         for filename in os.listdir(self.target_directory):

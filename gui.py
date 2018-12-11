@@ -76,10 +76,10 @@ class Example(QWidget):
         self.folder_path = folder_path
 
     def parse_files(self):
-
         if self.folder_path:
             parse = parser.Parser(self.folder_path, self.pbar)
-            num_files, tests, faults, num_chassis, num_chassis_fail = parse.parse_directory('20181001')
+            num_files, tests, faults, num_chassis, num_chassis_fail = parse.parse_directory(self.start_date.date(),
+                                                                                            self.end_date.date())
             self.num_files.setText(str(num_files))
             self.num_tests.setText(str(tests))
             self.num_fails.setText(str(faults))
