@@ -20,7 +20,11 @@ class Parser:
         chassis_tag = root.findall(".//*ATTRIBUTE[@ATT_NAME='ChassisNumber']")
         process_tag = root.findall(".PROCESS[@Description='Pre-Dyno']")
 
-        chassis_number = chassis_tag[0].get('ATT_VAL')
+        try:
+            chassis_number = chassis_tag[0].get('ATT_VAL')
+        except IndexError:
+            # if chassis tag missing use result VIN
+            chassis_number = root.get('VIN')
 
         if target_test and process_tag:
             criteria_met = True
@@ -50,15 +54,6 @@ class Parser:
         return criteria_met, contains_fault, chassis_number
 
     def parse_directory(self, start_date, end_date):
-
-
-        # if type(end) == str:
-        #     end_date = dateutil.parser.parse(end).date()
-        # elif type(end) == datetime.date:
-        #     end_date = end
-        # else:
-        #     raise TypeError('End Date is not a valid format')
-
         files_to_test = []
         for filename in os.listdir(self.target_directory):
             if '.xml' in filename:

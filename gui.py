@@ -16,7 +16,12 @@ class Example(QWidget):
         self.num_fails = QTextEdit()
         self.num_chassis = QTextEdit()
         self.num_chassis_failed = QTextEdit()
-        self.start_date = QDateEdit()
+
+        text_edits = [self.num_files, self.num_tests, self.num_fails, self.num_chassis, self.num_chassis_failed]
+        for box in text_edits:
+            box.setFontPointSize(20)
+
+        self.start_date = QDateEdit(QDate(2018, 10, 1))
         self.end_date = QDateEdit(QDate.currentDate())
         self.folder_path = None
         self.init_ui()
